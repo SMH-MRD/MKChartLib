@@ -8,6 +8,7 @@
 #define SET3_SECT_OF_INIFILE					L"SET3"			//CHART3 機能パラメータセクション
 #define SET4_SECT_OF_INIFILE					L"SET4"			//CHART4 機能パラメータセクション
 
+#define SET_CHART_TYPE_KEY_OF_INIFILE			L"CHART_TYPE"
 #define SET_CHART_X_KEY_OF_INIFILE				L"CHART_WND_X"
 #define SET_CHART_Y_KEY_OF_INIFILE				L"CHART_WND_Y"
 #define SET_CHART_W_KEY_OF_INIFILE				L"CHART_WND_W"
@@ -15,30 +16,24 @@
 #define SET_CHART_PLOT_MS_KEY_OF_INIFILE		L"PLOT_MS"
 
 
-#define IDC_CHART_START_PB		10601
-#define IDC_CHART_STOP_PB		10602
-#define IDC_CHART_RADIO_GRAPH	10603
-#define IDC_CHART_RADIO_PHASE	10604
-
-
-#define ID_CHART_TIMER	1
-
-
 #define CHART_NUM		4
 #define PLOT_ITEM_NUM	4
-#define CHART_WND_X		0
-#define CHART_WND_Y		0
+#define CHART_WND_X		600
+#define CHART_WND_Y		100
 #define CHART_WND_W		800
 #define CHART_WND_H		650
 
 #define CHART_GRAPH		0
-#define CHART_PHASE		1
+#define CHART_SCATTER	1
 
-#define CHART_100			50	//100%ドット数
-#define CHART_DOT_H			140	//１つのチャートの高さ
-#define CHART_DOT_W			720	//１つのチャートの幅
-#define CHART_MARGIN_X		50	//チャート書き出しポイント
-#define CHART_DURATION_DEF	10000	//チャート表示範囲デフォルトmsec
+#define GRAPH_CHART_100				50	//100%ドット数
+#define GRAPH_CHART_DOT_H			140	//１つのチャートの高さ
+#define GRAPH_CHART_DOT_W			720	//１つのチャートの幅
+#define SCAT_CHART_100				100	//100%ドット数
+#define SCAT_CHART_DOT_H			300	//１つのチャートの高さ
+#define SCAT_CHART_DOT_W			300	//１つのチャートの幅
+#define CHART_MARGIN_X				50	//チャート書き出しポイント
+#define CHART_DURATION_DEF			10000	//チャート表示範囲デフォルトmsec
 
 #define PHASE_NUM			3
 #define PHASE_DOT_H			200	//１つの位相チャートの高さ
