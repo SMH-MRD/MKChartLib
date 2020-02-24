@@ -102,6 +102,9 @@ namespace MKChart
 		HWND hwnd_chart_sopPB;			//チャートストップPBのハンドル
 		HWND hwnd_chart_opt1_radio;		//チャートOption1PBのハンドル
 		HWND hwnd_chart_opt2_radio;		//チャートOption2PBのハンドル
+		HBITMAP hBmap_mem0;
+		HBITMAP hBmap_bg;
+		HBITMAP hBmap_graph;
 		HDC hdc_mem0;					//合成画面メモリデバイスコンテキスト
 		HDC hdc_mem_bg;					//背景画面メモリデバイスコンテキスト
 		HDC hdc_mem_graph;				//グラフ画面メモリデバイスコンテキスト
@@ -124,12 +127,6 @@ namespace MKChart
 		ST_PLOT_ELEMENT	plot_data[MK_CHART_MAX_PER_WND][MK_MAX_GRAPH_PER_CHART][MK_CHART_BUF_MAX];//チャートプロットバッファ ログ記録用
 		int plot_buf_index;				//plot_dataの書き込みindex
 		int plot_x;						//plotするx座標
-		
-
-
-
-
-
 
 		UINT_PTR timerID;//プロットタイマーID
 
