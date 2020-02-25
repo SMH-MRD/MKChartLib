@@ -36,10 +36,8 @@
 #define CHART_DURATION_DEF			10000	//チャート表示範囲デフォルトmsec
 
 #define PHASE_NUM			3
-#define PHASE_DOT_H			200	//１つの位相チャートの高さ
-#define PHASE_DOT_W			200	//１つの位相チャートの幅
 #define PHASE_DURATION_DEF	10000	//位相表示時間msec
 #define PHASE_INTERVAL		100	//位相表示間隔
-#define PHASE_MARGIN_X		50	//位相チャート書き出しポイント
-#define PHASE_MARGIN_Y		50	//位相チャート書き出しポイント
+#define PHASE_MARGIN_X		25	//位相チャート書き出しポイント
+#define PHASE_MARGIN_Y		10	//位相チャート書き出しポイント
 #define PHASE_MAX_DEGREE	20	//位相チャート表示最大角度
