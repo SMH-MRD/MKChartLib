@@ -33,7 +33,7 @@
 #define SCAT_CHART_DOT_H			300	//１つのチャートの高さ
 #define SCAT_CHART_DOT_W			300	//１つのチャートの幅
 #define CHART_MARGIN_X				50	//チャート書き出しポイント
-#define CHART_DURATION_DEF			10000	//チャート表示範囲デフォルトmsec
+#define CHART_SPEED_DEF				10000	//チャート表示範囲デフォルトmsec
 
 #define PHASE_NUM			3
 #define PHASE_DURATION_DEF	10000	//位相表示時間msec

@@ -90,7 +90,7 @@ namespace MKChart
 		int chart_type;
 		int num_of_plot;//プロット数
 		int chart_x, chart_y, chart_w, chart_h;	//チャート画面の位置　幅、高さ
-		int chart_field_w, chart_field_h;//GRAPHチャートのサイズ
+		int graph_field_w, graph_field_h;//GRAPHチャートのビットマップサイズ
 		int plot_interval_ms;					//表示間隔msec
 		int refresh_interval_ms;				//グラフ表示クリア間隔msec
 		DWORD	start_time_ms;					//チャート開始時間
@@ -127,8 +127,14 @@ namespace MKChart
 		ST_PLOT_ELEMENT	plot_data[MK_CHART_MAX_PER_WND][MK_MAX_GRAPH_PER_CHART][MK_CHART_BUF_MAX];//チャートプロットバッファ ログ記録用
 		int plot_buf_index;				//plot_dataの書き込みindex
 		int plot_x;						//plotするx座標
+		int spd_dot_per_sec;			//plot速度
+		int graph_count[MK_CHART_MAX_PER_WND];
 
 		UINT_PTR timerID;//プロットタイマーID
+
+		POINT plot_p[MK_CHART_MAX_PER_WND][MK_MAX_GRAPH_PER_CHART][MK_MAX_BOOL_PER_CHART];
+		
+		HPEN hpen[MK_MAX_GRAPH_PER_CHART];
 
 	}ST_CHART_SET, *LPST_CHART_SET;
 
@@ -145,13 +151,13 @@ namespace MKChart
 		static	ST_CHART_SET mkchartset[MK_CHART_WND_MAX];
 		static HINSTANCE hInst;
 
-
 		static	int init_chartfunc();
 		static	int init_chart(int chartID);
 		static	int close_chart(int chartID);
 		static	int set_double_data(double* pd, int chart_WND_ID, int i_chart, int i_item, double d_100, bool is_x);
 		static	int set_int_data(int* pi, int chart_WND_ID, int i_chart, int i_item, int i_100, bool is_x);
 		static	int set_bool_data(bool* pb, int chart_WND_ID, int i_chart, int i_item, int i_bool);
+		static	int set_chart_spd(int chart_WND_ID, int speed_ms);//チャートのスピード　チャート幅記録にかかる時間msec
 
 		static HWND open_chart(int chartID, HWND hwnd_parent);
 		static LRESULT CALLBACK ChartWndProc_A(HWND, UINT, WPARAM, LPARAM);//Time-Data Graph
@@ -162,7 +168,7 @@ namespace MKChart
 		static	int chart_stop(int chartID);
 
 		static int get_chartID(HWND hWnd) { for (int i = 0; i < MK_CHART_WND_MAX; i++) { if (hWnd == mkchartset[i].hwnd_chart) return i; } return 3; }
-
+		static	int set_graph(int chart_WND_ID);
 	
 	};
 }
