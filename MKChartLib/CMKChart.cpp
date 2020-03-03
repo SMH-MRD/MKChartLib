@@ -13,7 +13,6 @@ namespace MKChart {
 	std::wstring  CMKChart::log_path;
 	ST_CHART_SET CMKChart::mkchartset[MK_CHART_WND_MAX];
 	HINSTANCE CMKChart::hInst;
-	HPEN hpen[MK_MAX_GRAPH_PER_CHART];
 
 	static double dummy_d = 0.0;
 	static int dummy_i = 0;
@@ -60,6 +59,30 @@ namespace MKChart {
 		str_num = GetPrivateProfileString(SET1_SECT_OF_INIFILE, SET_CHART_PLOT_MS_KEY_OF_INIFILE, L"FAILED", buf_t, sizeof(buf_t), szInipath); if (str_num < 4) mkchartset[MK_CHART1].plot_interval_ms = _wtoi(buf_t);
 		str_num = GetPrivateProfileString(SET1_SECT_OF_INIFILE, SET_CHART_TYPE_KEY_OF_INIFILE, L"FAILED", buf_t, sizeof(buf_t), szInipath); if (str_num < 4) mkchartset[MK_CHART1].chart_type = _wtoi(buf_t);
 
+		//CHART 2
+		str_num = GetPrivateProfileString(SET2_SECT_OF_INIFILE, SET_CHART_X_KEY_OF_INIFILE, L"FAILED", buf_t, sizeof(buf_t), szInipath); if (str_num < 4) mkchartset[MK_CHART2].chart_x = _wtoi(buf_t);
+		str_num = GetPrivateProfileString(SET2_SECT_OF_INIFILE, SET_CHART_Y_KEY_OF_INIFILE, L"FAILED", buf_t, sizeof(buf_t), szInipath); if (str_num < 4) mkchartset[MK_CHART2].chart_y = _wtoi(buf_t);
+		str_num = GetPrivateProfileString(SET2_SECT_OF_INIFILE, SET_CHART_W_KEY_OF_INIFILE, L"FAILED", buf_t, sizeof(buf_t), szInipath); if (str_num < 4) mkchartset[MK_CHART2].chart_w = _wtoi(buf_t);
+		str_num = GetPrivateProfileString(SET2_SECT_OF_INIFILE, SET_CHART_H_KEY_OF_INIFILE, L"FAILED", buf_t, sizeof(buf_t), szInipath); if (str_num < 4) mkchartset[MK_CHART2].chart_h = _wtoi(buf_t);
+		str_num = GetPrivateProfileString(SET2_SECT_OF_INIFILE, SET_CHART_PLOT_MS_KEY_OF_INIFILE, L"FAILED", buf_t, sizeof(buf_t), szInipath); if (str_num < 4) mkchartset[MK_CHART2].plot_interval_ms = _wtoi(buf_t);
+		str_num = GetPrivateProfileString(SET2_SECT_OF_INIFILE, SET_CHART_TYPE_KEY_OF_INIFILE, L"FAILED", buf_t, sizeof(buf_t), szInipath); if (str_num < 4) mkchartset[MK_CHART2].chart_type = _wtoi(buf_t);
+
+		//CHART 3
+		str_num = GetPrivateProfileString(SET3_SECT_OF_INIFILE, SET_CHART_X_KEY_OF_INIFILE, L"FAILED", buf_t, sizeof(buf_t), szInipath); if (str_num < 4) mkchartset[MK_CHART3].chart_x = _wtoi(buf_t);
+		str_num = GetPrivateProfileString(SET3_SECT_OF_INIFILE, SET_CHART_Y_KEY_OF_INIFILE, L"FAILED", buf_t, sizeof(buf_t), szInipath); if (str_num < 4) mkchartset[MK_CHART3].chart_y = _wtoi(buf_t);
+		str_num = GetPrivateProfileString(SET3_SECT_OF_INIFILE, SET_CHART_W_KEY_OF_INIFILE, L"FAILED", buf_t, sizeof(buf_t), szInipath); if (str_num < 4) mkchartset[MK_CHART3].chart_w = _wtoi(buf_t);
+		str_num = GetPrivateProfileString(SET3_SECT_OF_INIFILE, SET_CHART_H_KEY_OF_INIFILE, L"FAILED", buf_t, sizeof(buf_t), szInipath); if (str_num < 4) mkchartset[MK_CHART3].chart_h = _wtoi(buf_t);
+		str_num = GetPrivateProfileString(SET3_SECT_OF_INIFILE, SET_CHART_PLOT_MS_KEY_OF_INIFILE, L"FAILED", buf_t, sizeof(buf_t), szInipath); if (str_num < 4) mkchartset[MK_CHART3].plot_interval_ms = _wtoi(buf_t);
+		str_num = GetPrivateProfileString(SET3_SECT_OF_INIFILE, SET_CHART_TYPE_KEY_OF_INIFILE, L"FAILED", buf_t, sizeof(buf_t), szInipath); if (str_num < 4) mkchartset[MK_CHART3].chart_type = _wtoi(buf_t);
+
+		//CHART 4
+		str_num = GetPrivateProfileString(SET4_SECT_OF_INIFILE, SET_CHART_X_KEY_OF_INIFILE, L"FAILED", buf_t, sizeof(buf_t), szInipath); if (str_num < 4) mkchartset[MK_CHART4].chart_x = _wtoi(buf_t);
+		str_num = GetPrivateProfileString(SET4_SECT_OF_INIFILE, SET_CHART_Y_KEY_OF_INIFILE, L"FAILED", buf_t, sizeof(buf_t), szInipath); if (str_num < 4) mkchartset[MK_CHART4].chart_y = _wtoi(buf_t);
+		str_num = GetPrivateProfileString(SET4_SECT_OF_INIFILE, SET_CHART_W_KEY_OF_INIFILE, L"FAILED", buf_t, sizeof(buf_t), szInipath); if (str_num < 4) mkchartset[MK_CHART4].chart_w = _wtoi(buf_t);
+		str_num = GetPrivateProfileString(SET4_SECT_OF_INIFILE, SET_CHART_H_KEY_OF_INIFILE, L"FAILED", buf_t, sizeof(buf_t), szInipath); if (str_num < 4) mkchartset[MK_CHART4].chart_h = _wtoi(buf_t);
+		str_num = GetPrivateProfileString(SET4_SECT_OF_INIFILE, SET_CHART_PLOT_MS_KEY_OF_INIFILE, L"FAILED", buf_t, sizeof(buf_t), szInipath); if (str_num < 4) mkchartset[MK_CHART4].plot_interval_ms = _wtoi(buf_t);
+		str_num = GetPrivateProfileString(SET4_SECT_OF_INIFILE, SET_CHART_TYPE_KEY_OF_INIFILE, L"FAILED", buf_t, sizeof(buf_t), szInipath); if (str_num < 4) mkchartset[MK_CHART4].chart_type = _wtoi(buf_t);
+
 		return 0;
 	};
 	//########################################################################
@@ -80,12 +103,12 @@ namespace MKChart {
 			wc.hCursor = LoadCursor(0, IDC_ARROW);
 			wc.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
 			wc.lpszMenuName = NULL;
-			wc.lpszClassName = TEXT("MKChart_A");
+			wc.lpszClassName = TEXT("MKChart_S");
 			wc.hIconSm = NULL;
 			ATOM fb = RegisterClassExW(&wc);
 
-			mkchartset[chartID].hwnd_chart = CreateWindow(TEXT("MKChart_A"),
-				TEXT("MK CHART"),
+			mkchartset[chartID].hwnd_chart = CreateWindow(TEXT("MKChart_S"),
+				TEXT("MK CHART_S"),
 				WS_POPUPWINDOW | WS_VISIBLE | WS_CAPTION,
 				CHART_WND_X, CHART_WND_Y, CHART_WND_W, CHART_WND_H,
 				hwnd_parent,
@@ -108,7 +131,7 @@ namespace MKChart {
 			ATOM fb = RegisterClassExW(&wc);
 
 			mkchartset[chartID].hwnd_chart = CreateWindow(TEXT("MKChart_B"),
-				TEXT("MK CHART"),
+				TEXT("MK CHART_B"),
 				WS_POPUPWINDOW | WS_VISIBLE | WS_CAPTION,
 				CHART_WND_X, CHART_WND_Y, CHART_WND_W, CHART_WND_H,
 				hwnd_parent,
@@ -144,7 +167,7 @@ namespace MKChart {
 
 			close_chart(get_chartID(hwnd));
 
-			PostQuitMessage(0);
+		//	PostQuitMessage(0);
 		}return 0;
 		case WM_TIMER: {
 			int chartID_work = get_chartID(hwnd);
@@ -156,18 +179,34 @@ namespace MKChart {
 			SetDCPenColor(mkchartset[chartID_work].hdc_mem_graph, RGB(0, 0, 255));
 
 			if (mkchartset[chartID_work].chart_type == MK_CHART_TYPE_SCATTER) {
+				bool b_refresh = true;
+
+				int retio100 = MK_RANGE_100PERCENT / SCAT_CHART_100;
+
+				if (mkchartset[chartID_work].plot_buf_index % 50 == 0) {
+					PatBlt(mkchartset[chartID_work].hdc_mem_graph, 0, 0, CHART_WND_W, CHART_WND_H, WHITENESS);
+					PatBlt(mkchartset[chartID_work].hdc_mem0, 0, 0, CHART_WND_W, CHART_WND_H, WHITENESS);
+				}
 
 				for (int i = 0; i < MK_CHART_MAX_PER_WND; i++) {
 					if (mkchartset[chartID_work].graph_count[i]) {
 						for (int j = 0; j < MK_MAX_GRAPH_PER_CHART; j++) {
-							if (mkchartset[chartID_work].graph_count[i] < j) {
-								MoveToEx(mkchartset[chartID_work].hdc_mem_graph, 
+							if (mkchartset[chartID_work].graph_count[i] > j) {
+								SelectObject(mkchartset[chartID_work].hdc_mem_graph, mkchartset[chartID_work].hpen[j]);
+								SelectObject(mkchartset[chartID_work].hdc_mem_graph, mkchartset[chartID_work].hbrush[j]);
+
+								mkchartset[chartID_work].plot_p[i][j][0].x = mkchartset[chartID_work].g_origin[i].x
+									+ mkchartset[chartID_work].plot_data[i][j][mkchartset[chartID_work].plot_buf_index].x / retio100;
+
+								mkchartset[chartID_work].plot_p[i][j][0].y = mkchartset[chartID_work].g_origin[i].y
+									+ mkchartset[chartID_work].plot_data[i][j][mkchartset[chartID_work].plot_buf_index].y.i_data / retio100;
+
+								Rectangle(mkchartset[chartID_work].hdc_mem_graph, 
 									mkchartset[chartID_work].plot_p[i][j][0].x, 
 									mkchartset[chartID_work].plot_p[i][j][0].y,
-									NULL);
-								//				LineTo(mkchartset[chartID_work].hdc_mem_graph, mkchartset[chartID_work].g_origin[i].x, mkchartset[chartID_work].g_origin[i].y);
-								//				//MoveToEx(mkchartset[chartID_work].hdc_mem_graph, mkchartset[chartID_work].g_origin[i].x+test_count, mkchartset[chartID_work].g_origin[i].y + test_count, NULL);
-								//				//LineTo(mkchartset[chartID_work].hdc_mem_graph, mkchartset[chartID_work].g_origin[i].x, mkchartset[chartID_work].g_origin[i].y);
+									mkchartset[chartID_work].plot_p[i][j][0].x+3,
+									mkchartset[chartID_work].plot_p[i][j][0].y+3);
+
 							}
 							else break;
 						}
@@ -197,7 +236,7 @@ namespace MKChart {
 										+ mkchartset[chartID_work].plot_data[i][j][mkchartset[chartID_work].plot_buf_index].y.i_data/ retio100;
 
 								if (old_x > mkchartset[chartID_work].plot_p[i][j][0].x) {
-									if (b_refresh == true) {
+									if (b_refresh == true) {//最初のチャートの時だけグラフクリア
 										PatBlt(mkchartset[chartID_work].hdc_mem_graph, 0, 0, CHART_WND_W, CHART_WND_H, WHITENESS);
 										PatBlt(mkchartset[chartID_work].hdc_mem0, 0, 0, CHART_WND_W, CHART_WND_H, WHITENESS);
 										b_refresh = false;
@@ -397,6 +436,11 @@ namespace MKChart {
 		mkchartset[chartID].hpen[2] = CreatePen(PS_SOLID, 1, RGB(255, 0, 0));
 		mkchartset[chartID].hpen[3] = CreatePen(PS_SOLID, 1, RGB(255, 255, 0));
 
+		mkchartset[chartID].hbrush[0] = CreateSolidBrush(RGB(0, 0, 255));
+		mkchartset[chartID].hbrush[1] = CreateSolidBrush(RGB(0, 255, 0));
+		mkchartset[chartID].hbrush[2] = CreateSolidBrush(RGB(255, 0,0 ));
+		mkchartset[chartID].hbrush[3] = CreateSolidBrush(RGB(255, 255, 0));
+
 
 		//SAMPLE Radio button 表示
 		if (mkchartset[chartID].chart_type == CHART_GRAPH) SendMessage(mkchartset[chartID].hwnd_chart_opt1_radio, BM_SETCHECK, BST_CHECKED, 0L);
@@ -483,7 +527,10 @@ namespace MKChart {
 		//タイマー解放
 		KillTimer(NULL, mkchartset[chartID].timerID);
 
-		for (int i=0; i < MK_MAX_GRAPH_PER_CHART; i++) DeleteObject(mkchartset[chartID].hpen[i]);
+		for (int i = 0; i < MK_MAX_GRAPH_PER_CHART; i++) {
+			DeleteObject(mkchartset[chartID].hpen[i]);
+			DeleteObject(mkchartset[chartID].hbrush[i]);
+		}
 
 		//描画用デバイスコンテキスト解放
 		DeleteDC(mkchartset[chartID].hdc_mem0);			//ベース画面
@@ -600,8 +647,7 @@ namespace MKChart {
 				else break;
 
 				if (mkchartset[chart_WND_ID].chart_type == MK_CHART_TYPE_SCATTER) {
-					if (mkchartset[chart_WND_ID].data_type[MK_DATA_CODE_Y][i][j] < MK_DATA_TYPE_TIME)break;
-					else if (mkchartset[chart_WND_ID].data_type[MK_DATA_CODE_X][i][j] == MK_DATA_TYPE_DOUBLE) {
+					if (mkchartset[chart_WND_ID].data_type[MK_DATA_CODE_X][i][j] == MK_DATA_TYPE_DOUBLE) {
 						mkchartset[chart_WND_ID].plot_data[i][j][mkchartset[chart_WND_ID].plot_buf_index].x
 							= (int)(MK_RANGE_100PERCENT * (*mkchartset[chart_WND_ID].pdata[MK_DATA_CODE_X].pd[i][j]) / mkchartset[chart_WND_ID].value100[MK_DATA_CODE_X].d100[i][j]);
 					}
