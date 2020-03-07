@@ -207,7 +207,7 @@ namespace MKChart {
 									+ mkchartset[chartID_work].plot_data[i][j][mkchartset[chartID_work].plot_buf_index].x / retio100;
 
 								mkchartset[chartID_work].plot_p[i][j][0].y = mkchartset[chartID_work].g_origin[i].y
-									+ mkchartset[chartID_work].plot_data[i][j][mkchartset[chartID_work].plot_buf_index].y.i_data / retio100;
+									- mkchartset[chartID_work].plot_data[i][j][mkchartset[chartID_work].plot_buf_index].y.i_data / retio100;
 
 								if (!(mkchartset[chartID_work].chart_status & MK_CHART_NO_MARK)) {
 								//	SelectObject(mkchartset[chartID_work].hdc_mem_graph, mkchartset[chartID_work].hbrush[j]);
@@ -288,7 +288,7 @@ namespace MKChart {
 										+ (mkchartset[chartID_work].plot_data[i][j][mkchartset[chartID_work].plot_buf_index].x * mkchartset[chartID_work].spd_dot_per_sec / 100) % GRAPH_CHART_DOT_W;
 
 									mkchartset[chartID_work].plot_p[i][j][0].y = mkchartset[chartID_work].g_origin[i].y
-										+ mkchartset[chartID_work].plot_data[i][j][mkchartset[chartID_work].plot_buf_index].y.i_data / retio100;
+										- mkchartset[chartID_work].plot_data[i][j][mkchartset[chartID_work].plot_buf_index].y.i_data / retio100;
 
 									if (old_x > mkchartset[chartID_work].plot_p[i][j][0].x) {
 										if (b_refresh == true) {//最初のチャートの時だけグラフクリア
