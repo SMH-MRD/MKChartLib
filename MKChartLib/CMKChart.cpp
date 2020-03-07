@@ -148,9 +148,7 @@ namespace MKChart {
 	};
 	//########################################################################	
 	LRESULT CMKChart::ChartWndProc_A(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
-
 		HDC hdc;
-
 		switch (msg) {
 		case WM_DESTROY: {
 
@@ -170,8 +168,12 @@ namespace MKChart {
 		//	PostQuitMessage(0);
 		}return 0;
 		case WM_TIMER: {
+
 			int chartID_work = get_chartID(hwnd);
-	
+			mkchartset[chartID_work].chart_status |= MK_CHART_ACTIVE;
+
+			if (mkchartset[chartID_work].chart_status & MK_CHART_PAUSE) return 0;
+
 			set_graph(chartID_work);//プロットデータ記録
 
 			//SelectObject(mkchartset[chartID_work].hdc_mem_bg, GetStockObject(BLACK_PEN));
@@ -181,9 +183,9 @@ namespace MKChart {
 			if (mkchartset[chartID_work].chart_type == MK_CHART_TYPE_SCATTER) {
 				bool b_refresh = true;
 
-				int retio100 = MK_RANGE_100PERCENT / SCAT_CHART_100;
+				int retio100 = MK_RANGE_100PERCENT / SCAT_CHART_100;//チャートプロット係数
 
-				if (mkchartset[chartID_work].plot_buf_index % 50 == 0) {
+				if (mkchartset[chartID_work].plot_buf_index % mkchartset[chartID_work].refresh_interval == 0) {
 					PatBlt(mkchartset[chartID_work].hdc_mem_graph, 0, 0, CHART_WND_W, CHART_WND_H, WHITENESS);
 					PatBlt(mkchartset[chartID_work].hdc_mem0, 0, 0, CHART_WND_W, CHART_WND_H, WHITENESS);
 				}
@@ -191,9 +193,15 @@ namespace MKChart {
 				for (int i = 0; i < MK_CHART_MAX_PER_WND; i++) {
 					if (mkchartset[chartID_work].graph_count[i]) {
 						for (int j = 0; j < MK_MAX_GRAPH_PER_CHART; j++) {
-							if (mkchartset[chartID_work].graph_count[i] > j) {
+							if (mkchartset[chartID_work].graph_count[i] > j) {//設定数分だけ処理
+
 								SelectObject(mkchartset[chartID_work].hdc_mem_graph, mkchartset[chartID_work].hpen[j]);
-								SelectObject(mkchartset[chartID_work].hdc_mem_graph, mkchartset[chartID_work].hbrush[j]);
+
+								MoveToEx(mkchartset[chartID_work].hdc_mem_graph,
+									mkchartset[chartID_work].plot_p[i][j][0].x,
+									mkchartset[chartID_work].plot_p[i][j][0].y,
+									NULL
+								);
 
 								mkchartset[chartID_work].plot_p[i][j][0].x = mkchartset[chartID_work].g_origin[i].x
 									+ mkchartset[chartID_work].plot_data[i][j][mkchartset[chartID_work].plot_buf_index].x / retio100;
@@ -201,11 +209,20 @@ namespace MKChart {
 								mkchartset[chartID_work].plot_p[i][j][0].y = mkchartset[chartID_work].g_origin[i].y
 									+ mkchartset[chartID_work].plot_data[i][j][mkchartset[chartID_work].plot_buf_index].y.i_data / retio100;
 
-								Rectangle(mkchartset[chartID_work].hdc_mem_graph, 
-									mkchartset[chartID_work].plot_p[i][j][0].x, 
-									mkchartset[chartID_work].plot_p[i][j][0].y,
-									mkchartset[chartID_work].plot_p[i][j][0].x+3,
-									mkchartset[chartID_work].plot_p[i][j][0].y+3);
+								if (!(mkchartset[chartID_work].chart_status & MK_CHART_NO_MARK)) {
+								//	SelectObject(mkchartset[chartID_work].hdc_mem_graph, mkchartset[chartID_work].hbrush[j]);
+									Rectangle(mkchartset[chartID_work].hdc_mem_graph,
+										mkchartset[chartID_work].plot_p[i][j][0].x - 2,
+										mkchartset[chartID_work].plot_p[i][j][0].y - 2,
+										mkchartset[chartID_work].plot_p[i][j][0].x + 2,
+										mkchartset[chartID_work].plot_p[i][j][0].y + 2);
+								}
+								if (!(mkchartset[chartID_work].chart_status & MK_CHART_NO_LINE)) {
+									LineTo(mkchartset[chartID_work].hdc_mem_graph,
+										mkchartset[chartID_work].plot_p[i][j][0].x,
+										mkchartset[chartID_work].plot_p[i][j][0].y
+									);
+								}
 
 							}
 							else break;
@@ -215,38 +232,89 @@ namespace MKChart {
 				}
 			}
 			else {
-				int retio100 = MK_RANGE_100PERCENT / GRAPH_CHART_100;
+				int retio100 = MK_RANGE_100PERCENT / GRAPH_CHART_100;//チャートプロット係数
 				bool b_refresh = true;
 				for (int i = 0; i < MK_CHART_MAX_PER_WND; i++) {
 					if (mkchartset[chartID_work].graph_count[i]) {
 						for (int j = 0; j < MK_MAX_GRAPH_PER_CHART; j++) {
 							if (mkchartset[chartID_work].graph_count[i] > j) {
-								SelectObject(mkchartset[chartID_work].hdc_mem_graph, mkchartset[chartID_work].hpen[j]);
-								MoveToEx(mkchartset[chartID_work].hdc_mem_graph,
-									mkchartset[chartID_work].plot_p[i][j][0].x,
-									mkchartset[chartID_work].plot_p[i][j][0].y,
-									NULL
-								);
+								if(mkchartset[chartID_work].data_type[1][i][j] == MK_DATA_TYPE_BOOL) {
+									LONG old_x = mkchartset[chartID_work].plot_p[i][j][0].x;
+									LONG old_y;
+							
+									SelectObject(mkchartset[chartID_work].hdc_mem_graph, mkchartset[chartID_work].hpen[j]);
 
-								LONG old_x = mkchartset[chartID_work].plot_p[i][j][0].x;
-								mkchartset[chartID_work].plot_p[i][j][0].x = mkchartset[chartID_work].g_origin[i].x
-									+ (mkchartset[chartID_work].plot_data[i][j][mkchartset[chartID_work].plot_buf_index].x * mkchartset[chartID_work].spd_dot_per_sec / 100)% GRAPH_CHART_DOT_W;
-					
-								mkchartset[chartID_work].plot_p[i][j][0].y = mkchartset[chartID_work].g_origin[i].y 
-										+ mkchartset[chartID_work].plot_data[i][j][mkchartset[chartID_work].plot_buf_index].y.i_data/ retio100;
+									for (int k = 0; k < MK_MAX_BOOL_PER_CHART; k++) {
+										MoveToEx(mkchartset[chartID_work].hdc_mem_graph, old_x, mkchartset[chartID_work].plot_p[i][j][k].y, NULL);
+										old_y = mkchartset[chartID_work].plot_p[i][j][k].y;
+			
+										if(!k){
+										mkchartset[chartID_work].plot_p[i][j][0].x = mkchartset[chartID_work].g_origin[i].x
+											+ (mkchartset[chartID_work].plot_data[i][j][mkchartset[chartID_work].plot_buf_index].x * mkchartset[chartID_work].spd_dot_per_sec / 100) % GRAPH_CHART_DOT_W;
+										}
+										
+										mkchartset[chartID_work].plot_p[i][j][k].y = mkchartset[chartID_work].g_origin[i].y + GRAPH_CHART_100/2 *(2-j) - GRAPH_CHART_100/8 * k
+											- mkchartset[chartID_work].plot_data[i][j][mkchartset[chartID_work].plot_buf_index].y.b_data[k]* GRAPH_CHART_BOOL_H ;
 
-								if (old_x > mkchartset[chartID_work].plot_p[i][j][0].x) {
-									if (b_refresh == true) {//最初のチャートの時だけグラフクリア
-										PatBlt(mkchartset[chartID_work].hdc_mem_graph, 0, 0, CHART_WND_W, CHART_WND_H, WHITENESS);
-										PatBlt(mkchartset[chartID_work].hdc_mem0, 0, 0, CHART_WND_W, CHART_WND_H, WHITENESS);
-										b_refresh = false;
+										if (old_x > mkchartset[chartID_work].plot_p[i][j][0].x) {
+											if (b_refresh == true) {//最初のチャートの時だけグラフクリア
+												PatBlt(mkchartset[chartID_work].hdc_mem_graph, 0, 0, CHART_WND_W, CHART_WND_H, WHITENESS);
+												PatBlt(mkchartset[chartID_work].hdc_mem0, 0, 0, CHART_WND_W, CHART_WND_H, WHITENESS);
+												b_refresh = false;
+											}
+										}
+										else {
+											if (!(mkchartset[chartID_work].chart_status & MK_CHART_NO_LINE)) {
+												//前回値分ライン描画
+												LineTo(mkchartset[chartID_work].hdc_mem_graph,
+													mkchartset[chartID_work].plot_p[i][j][0].x,
+													old_y
+												);
+												//今回値分ライン描画
+												LineTo(mkchartset[chartID_work].hdc_mem_graph,
+													mkchartset[chartID_work].plot_p[i][j][0].x,
+													mkchartset[chartID_work].plot_p[i][j][k].y
+												);
+											}
+										}
 									}
 								}
-								else {
-									LineTo(mkchartset[chartID_work].hdc_mem_graph,
-										mkchartset[chartID_work].plot_p[i][j][0].x,
-										mkchartset[chartID_work].plot_p[i][j][0].y
-									);
+								else{//double int データ
+									SelectObject(mkchartset[chartID_work].hdc_mem_graph, mkchartset[chartID_work].hpen[j]);
+									MoveToEx(mkchartset[chartID_work].hdc_mem_graph, mkchartset[chartID_work].plot_p[i][j][0].x, mkchartset[chartID_work].plot_p[i][j][0].y, NULL);
+
+									LONG old_x = mkchartset[chartID_work].plot_p[i][j][0].x;
+									mkchartset[chartID_work].plot_p[i][j][0].x = mkchartset[chartID_work].g_origin[i].x
+										+ (mkchartset[chartID_work].plot_data[i][j][mkchartset[chartID_work].plot_buf_index].x * mkchartset[chartID_work].spd_dot_per_sec / 100) % GRAPH_CHART_DOT_W;
+
+									mkchartset[chartID_work].plot_p[i][j][0].y = mkchartset[chartID_work].g_origin[i].y
+										+ mkchartset[chartID_work].plot_data[i][j][mkchartset[chartID_work].plot_buf_index].y.i_data / retio100;
+
+									if (old_x > mkchartset[chartID_work].plot_p[i][j][0].x) {
+										if (b_refresh == true) {//最初のチャートの時だけグラフクリア
+											PatBlt(mkchartset[chartID_work].hdc_mem_graph, 0, 0, CHART_WND_W, CHART_WND_H, WHITENESS);
+											PatBlt(mkchartset[chartID_work].hdc_mem0, 0, 0, CHART_WND_W, CHART_WND_H, WHITENESS);
+											b_refresh = false;
+										}
+									}
+									else {
+
+										if (!(mkchartset[chartID_work].chart_status & MK_CHART_NO_MARK)) {
+											//	SelectObject(mkchartset[chartID_work].hdc_mem_graph, mkchartset[chartID_work].hbrush[j]);
+											Rectangle(mkchartset[chartID_work].hdc_mem_graph,
+												mkchartset[chartID_work].plot_p[i][j][0].x - 2,
+												mkchartset[chartID_work].plot_p[i][j][0].y - 2,
+												mkchartset[chartID_work].plot_p[i][j][0].x + 2,
+												mkchartset[chartID_work].plot_p[i][j][0].y + 2);
+										}
+
+										if (!(mkchartset[chartID_work].chart_status & MK_CHART_NO_LINE)) {
+											LineTo(mkchartset[chartID_work].hdc_mem_graph,
+												mkchartset[chartID_work].plot_p[i][j][0].x,
+												mkchartset[chartID_work].plot_p[i][j][0].y
+											);
+										}
+									}
 								}
 							}
 							else break;
@@ -255,7 +323,6 @@ namespace MKChart {
 					else continue;
 				}
 			}
-
 
 			InvalidateRect(hwnd, NULL, TRUE);
 
@@ -268,24 +335,25 @@ namespace MKChart {
 			mkchartset[chartID_work].hwnd_chart_startPB = CreateWindow(
 				L"BUTTON", L"Start",
 				WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
-				CHART_WND_W - 100, CHART_WND_H - 70, 38, 25, hwnd, (HMENU)IDC_CHART_START_PB, hInst, NULL);
-			mkchartset[chartID_work].hwnd_chart_sopPB = CreateWindow(
-				L"BUTTON", L"Stop",
+				CHART_WND_W - 105, CHART_WND_H - 70, 40, 25, hwnd, (HMENU)IDC_CHART_START_PB, hInst, NULL);
+			mkchartset[chartID_work].hwnd_chart_pausePB = CreateWindow(
+				L"BUTTON", L"Pause",
 				WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
-				CHART_WND_W - 58, CHART_WND_H - 70, 38, 25, hwnd, (HMENU)IDC_CHART_STOP_PB, hInst, NULL);
+				CHART_WND_W - 60, CHART_WND_H - 70, 44, 25, hwnd, (HMENU)IDC_CHART_PAUSE_PB, hInst, NULL);
 			mkchartset[chartID_work].hwnd_chart_opt1_radio = CreateWindow(
-				L"BUTTON", L"Option1",
+				L"BUTTON", L"Line",
 				WS_CHILD | WS_VISIBLE | BS_RADIOBUTTON,
 				CHART_WND_W - 175, 5, 70, 25, hwnd, (HMENU)IDC_CHART_RADIO_OPT1, hInst, NULL);
 			mkchartset[chartID_work].hwnd_chart_opt2_radio = CreateWindow(
-				L"BUTTON", L"Option2",
+				L"BUTTON", L"Mark",
 				WS_CHILD | WS_VISIBLE | BS_RADIOBUTTON,
 				CHART_WND_W - 95, 5, 70, 25, hwnd, (HMENU)IDC_CHART_RADIO_OPT2, hInst, NULL);
 
-
+			//チャート初期化
 			init_chart(chartID_work);
-			hdc = GetDC(hwnd);
 
+			//デバイスコンテキスト設定
+			hdc = GetDC(hwnd);
 			if (mkchartset[chartID_work].chart_type == MK_CHART_TYPE_SCATTER) {
 				mkchartset[chartID_work].hBmap_mem0 = CreateCompatibleBitmap(hdc, CHART_WND_W, CHART_WND_H);
 				mkchartset[chartID_work].hdc_mem0 = CreateCompatibleDC(hdc);
@@ -305,10 +373,11 @@ namespace MKChart {
 
 				ReleaseDC(hwnd, hdc);
 
-				SelectObject(mkchartset[chartID_work].hdc_mem_bg, GetStockObject(DC_PEN));
-				SetDCPenColor(mkchartset[chartID_work].hdc_mem_bg, RGB(128, 128, 128));
-
-				for (int i = 0; i < CHART_NUM; i++) {
+				//チャート背景ライン他描画
+				HPEN _hpen = CreatePen(PS_DOT, 2, RGB(20, 20, 20));
+				SelectObject(mkchartset[chartID_work].hdc_mem_bg, _hpen);
+				//座標軸描画
+				for (int i = 0; i < MK_CHART_MAX_PER_WND; i++) {
 					MoveToEx(mkchartset[chartID_work].hdc_mem_bg, mkchartset[chartID_work].g_origin[i].x - SCAT_CHART_DOT_W / 2, mkchartset[chartID_work].g_origin[i].y, NULL);
 					LineTo(mkchartset[chartID_work].hdc_mem_bg, mkchartset[chartID_work].g_origin[i].x + SCAT_CHART_DOT_W / 2, mkchartset[chartID_work].g_origin[i].y);
 
@@ -316,6 +385,29 @@ namespace MKChart {
 					LineTo(mkchartset[chartID_work].hdc_mem_bg, mkchartset[chartID_work].g_origin[i].x, mkchartset[chartID_work].g_origin[i].y + SCAT_CHART_DOT_H / 2);
 
 				}
+				//目盛線描画
+				_hpen = CreatePen(PS_DOT, 0, RGB(128, 128, 128));
+				DeleteObject(SelectObject(mkchartset[chartID_work].hdc_mem_bg, _hpen));
+				for (int i = 0; i < MK_CHART_MAX_PER_WND; i++) {
+					MoveToEx(mkchartset[chartID_work].hdc_mem_bg, mkchartset[chartID_work].g_origin[i].x - SCAT_CHART_DOT_W / 2, mkchartset[chartID_work].g_origin[i].y + SCAT_CHART_100, NULL);
+					LineTo(mkchartset[chartID_work].hdc_mem_bg, mkchartset[chartID_work].g_origin[i].x + SCAT_CHART_DOT_W / 2, mkchartset[chartID_work].g_origin[i].y + SCAT_CHART_100);
+					MoveToEx(mkchartset[chartID_work].hdc_mem_bg, mkchartset[chartID_work].g_origin[i].x - SCAT_CHART_DOT_W / 2, mkchartset[chartID_work].g_origin[i].y + SCAT_CHART_100/2, NULL);
+					LineTo(mkchartset[chartID_work].hdc_mem_bg, mkchartset[chartID_work].g_origin[i].x + SCAT_CHART_DOT_W / 2, mkchartset[chartID_work].g_origin[i].y + SCAT_CHART_100/2);
+					MoveToEx(mkchartset[chartID_work].hdc_mem_bg, mkchartset[chartID_work].g_origin[i].x - SCAT_CHART_DOT_W / 2, mkchartset[chartID_work].g_origin[i].y - SCAT_CHART_100, NULL);
+					LineTo(mkchartset[chartID_work].hdc_mem_bg, mkchartset[chartID_work].g_origin[i].x + SCAT_CHART_DOT_W / 2, mkchartset[chartID_work].g_origin[i].y - SCAT_CHART_100);
+					MoveToEx(mkchartset[chartID_work].hdc_mem_bg, mkchartset[chartID_work].g_origin[i].x - SCAT_CHART_DOT_W / 2, mkchartset[chartID_work].g_origin[i].y - SCAT_CHART_100 / 2, NULL);
+					LineTo(mkchartset[chartID_work].hdc_mem_bg, mkchartset[chartID_work].g_origin[i].x + SCAT_CHART_DOT_W / 2, mkchartset[chartID_work].g_origin[i].y - SCAT_CHART_100 / 2);
+
+					MoveToEx(mkchartset[chartID_work].hdc_mem_bg, mkchartset[chartID_work].g_origin[i].x + SCAT_CHART_100, mkchartset[chartID_work].g_origin[i].y - SCAT_CHART_DOT_H / 2, NULL);
+					LineTo(mkchartset[chartID_work].hdc_mem_bg, mkchartset[chartID_work].g_origin[i].x + SCAT_CHART_100, mkchartset[chartID_work].g_origin[i].y + SCAT_CHART_DOT_H / 2);
+					MoveToEx(mkchartset[chartID_work].hdc_mem_bg, mkchartset[chartID_work].g_origin[i].x + SCAT_CHART_100/2, mkchartset[chartID_work].g_origin[i].y - SCAT_CHART_DOT_H / 2, NULL);
+					LineTo(mkchartset[chartID_work].hdc_mem_bg, mkchartset[chartID_work].g_origin[i].x + SCAT_CHART_100/2, mkchartset[chartID_work].g_origin[i].y + SCAT_CHART_DOT_H / 2);
+					MoveToEx(mkchartset[chartID_work].hdc_mem_bg, mkchartset[chartID_work].g_origin[i].x - SCAT_CHART_100, mkchartset[chartID_work].g_origin[i].y - SCAT_CHART_DOT_H / 2, NULL);
+					LineTo(mkchartset[chartID_work].hdc_mem_bg, mkchartset[chartID_work].g_origin[i].x - SCAT_CHART_100, mkchartset[chartID_work].g_origin[i].y + SCAT_CHART_DOT_H / 2);
+					MoveToEx(mkchartset[chartID_work].hdc_mem_bg, mkchartset[chartID_work].g_origin[i].x - SCAT_CHART_100 / 2, mkchartset[chartID_work].g_origin[i].y - SCAT_CHART_DOT_H / 2, NULL);
+					LineTo(mkchartset[chartID_work].hdc_mem_bg, mkchartset[chartID_work].g_origin[i].x - SCAT_CHART_100 / 2, mkchartset[chartID_work].g_origin[i].y + SCAT_CHART_DOT_H / 2);
+				}
+				DeleteObject(SelectObject(mkchartset[chartID_work].hdc_mem_bg, GetStockObject(WHITE_BRUSH)));
 			}
 			else {
 				mkchartset[chartID_work].hBmap_mem0 = CreateCompatibleBitmap(hdc, CHART_WND_W * 4, CHART_WND_H);
@@ -337,9 +429,9 @@ namespace MKChart {
 				ReleaseDC(hwnd, hdc);
 
 				SelectObject(mkchartset[chartID_work].hdc_mem_bg, GetStockObject(DC_PEN));
-				SetDCPenColor(mkchartset[chartID_work].hdc_mem_bg, RGB(128, 128, 128));
+				SetDCPenColor(mkchartset[chartID_work].hdc_mem_bg, RGB(20, 20, 20));
 
-				for (int i = 0; i < CHART_NUM; i++) {
+				for (int i = 0; i < MK_CHART_MAX_PER_WND; i++) {
 					MoveToEx(mkchartset[chartID_work].hdc_mem_bg, mkchartset[chartID_work].g_origin[i].x, mkchartset[chartID_work].g_origin[i].y, NULL);
 					LineTo(mkchartset[chartID_work].hdc_mem_bg, mkchartset[chartID_work].g_origin[i].x + GRAPH_CHART_DOT_W, mkchartset[chartID_work].g_origin[i].y);
 
@@ -347,19 +439,40 @@ namespace MKChart {
 					LineTo(mkchartset[chartID_work].hdc_mem_bg, mkchartset[chartID_work].g_origin[i].x, mkchartset[chartID_work].g_origin[i].y - GRAPH_CHART_DOT_H / 2 + 5);
 
 				}
+				//目盛線描画
+				HPEN _hpen = CreatePen(PS_DOT, 0, RGB(128, 128, 128));
+				DeleteObject(SelectObject(mkchartset[chartID_work].hdc_mem_bg, _hpen));
+				for (int i = 0; i < MK_CHART_MAX_PER_WND; i++) {
+					MoveToEx(mkchartset[chartID_work].hdc_mem_bg, mkchartset[chartID_work].g_origin[i].x, mkchartset[chartID_work].g_origin[i].y + GRAPH_CHART_100, NULL);
+					LineTo(mkchartset[chartID_work].hdc_mem_bg, mkchartset[chartID_work].g_origin[i].x + GRAPH_CHART_DOT_W, mkchartset[chartID_work].g_origin[i].y + GRAPH_CHART_100);
+					MoveToEx(mkchartset[chartID_work].hdc_mem_bg, mkchartset[chartID_work].g_origin[i].x, mkchartset[chartID_work].g_origin[i].y + GRAPH_CHART_100/2, NULL);
+					LineTo(mkchartset[chartID_work].hdc_mem_bg, mkchartset[chartID_work].g_origin[i].x + GRAPH_CHART_DOT_W, mkchartset[chartID_work].g_origin[i].y + GRAPH_CHART_100 / 2);
+					MoveToEx(mkchartset[chartID_work].hdc_mem_bg, mkchartset[chartID_work].g_origin[i].x, mkchartset[chartID_work].g_origin[i].y - GRAPH_CHART_100, NULL);
+					LineTo(mkchartset[chartID_work].hdc_mem_bg, mkchartset[chartID_work].g_origin[i].x + GRAPH_CHART_DOT_W, mkchartset[chartID_work].g_origin[i].y - GRAPH_CHART_100);
+					MoveToEx(mkchartset[chartID_work].hdc_mem_bg, mkchartset[chartID_work].g_origin[i].x, mkchartset[chartID_work].g_origin[i].y - GRAPH_CHART_100 / 2, NULL);
+					LineTo(mkchartset[chartID_work].hdc_mem_bg, mkchartset[chartID_work].g_origin[i].x + GRAPH_CHART_DOT_W, mkchartset[chartID_work].g_origin[i].y - GRAPH_CHART_100 / 2);
+
+					int w_1sec;
+					if (mkchartset[chartID_work].g_ms_per_dot > 0) w_1sec = 1000/ mkchartset[chartID_work].g_ms_per_dot;
+					for (int j = 0; j < GRAPH_CHART_DOT_W * mkchartset[chartID_work].g_ms_per_dot / 1000; j++) {
+						MoveToEx(mkchartset[chartID_work].hdc_mem_bg, mkchartset[chartID_work].g_origin[i].x + (j + 1)* w_1sec, mkchartset[chartID_work].g_origin[i].y + GRAPH_CHART_DOT_H / 2 - 5, NULL);
+						LineTo(mkchartset[chartID_work].hdc_mem_bg, mkchartset[chartID_work].g_origin[i].x + (j + 1) * w_1sec, mkchartset[chartID_work].g_origin[i].y - GRAPH_CHART_DOT_H / 2 + 5);
+					}
+
+				}
+			
+				DeleteObject(SelectObject(mkchartset[chartID_work].hdc_mem0, GetStockObject(WHITE_BRUSH)));
+				DeleteObject(SelectObject(mkchartset[chartID_work].hdc_mem_bg, GetStockObject(WHITE_BRUSH)));
 			}
 
-			DeleteObject(SelectObject(mkchartset[chartID_work].hdc_mem0, GetStockObject(WHITE_BRUSH)));
-			DeleteObject(SelectObject(mkchartset[chartID_work].hdc_mem_bg, GetStockObject(WHITE_BRUSH)));
+
 
 			//タイマー起動
 			mkchartset[chartID_work].timerID = SetTimer(hwnd, ID_CHART_TIMER + chartID_work, mkchartset[chartID_work].plot_interval_ms, NULL);
-
+			SetWindowText(mkchartset[chartID_work].hwnd_chart_startPB, L"Stop");
 			return 0;
 		}
-		case WM_CREATE: {
-			;
-		}
+		case WM_CREATE: break;
 		case WM_PAINT: {
 			PAINTSTRUCT ps;
 			hdc = BeginPaint(hwnd, &ps);
@@ -373,7 +486,64 @@ namespace MKChart {
 
 			break;
 		}
+		case WM_COMMAND:{
+			int chartID = get_chartID(hwnd);
+			switch (LOWORD(wp)) {
+			case IDC_CHART_START_PB:
+			{
+				if (mkchartset[chartID].chart_status & MK_CHART_ACTIVE) {
+					mkchartset[chartID].chart_status &= ~MK_CHART_ACTIVE;
+					SetWindowText(mkchartset[chartID].hwnd_chart_startPB, L"Start");
+					KillTimer(hwnd, mkchartset[chartID].timerID);
+				}
+				else {
+					init_chart(chartID);
+					PatBlt(mkchartset[chartID].hdc_mem_graph, 0, 0, CHART_WND_W, CHART_WND_H, WHITENESS);
+					PatBlt(mkchartset[chartID].hdc_mem0, 0, 0, CHART_WND_W, CHART_WND_H, WHITENESS);
 
+					mkchartset[chartID].timerID = SetTimer(hwnd, ID_CHART_TIMER + chartID, mkchartset[chartID].plot_interval_ms, NULL);
+					mkchartset[chartID].chart_status |= MK_CHART_ACTIVE;
+					SetWindowText(mkchartset[chartID].hwnd_chart_startPB, L"Stop");
+
+					InvalidateRect(hwnd, NULL, TRUE);
+				}
+				break;
+			}
+			case IDC_CHART_PAUSE_PB: {
+				if (mkchartset[chartID].chart_status & MK_CHART_PAUSE) {
+					mkchartset[chartID].chart_status &= ~MK_CHART_PAUSE;
+					SetWindowText(mkchartset[chartID].hwnd_chart_pausePB, L"Pause");
+				}
+				else {
+					mkchartset[chartID].chart_status |= MK_CHART_PAUSE;
+					SetWindowText(mkchartset[chartID].hwnd_chart_pausePB, L"Act");
+				}
+				break;
+			}
+			case IDC_CHART_RADIO_OPT1: {
+				if (mkchartset[chartID].chart_status & MK_CHART_NO_LINE) {
+					mkchartset[chartID].chart_status &= ~MK_CHART_NO_LINE;
+					SendMessage(mkchartset[chartID].hwnd_chart_opt1_radio, BM_SETCHECK, BST_CHECKED, 0L);
+				}
+				else {
+					mkchartset[chartID].chart_status |= MK_CHART_NO_LINE;
+					SendMessage(mkchartset[chartID].hwnd_chart_opt1_radio, BM_SETCHECK, BST_UNCHECKED, 0L);
+				}
+				break;
+			}
+			case IDC_CHART_RADIO_OPT2: {
+				if (mkchartset[chartID].chart_status & MK_CHART_NO_MARK) {
+					mkchartset[chartID].chart_status &= ~MK_CHART_NO_MARK;
+					SendMessage(mkchartset[chartID].hwnd_chart_opt2_radio, BM_SETCHECK, BST_CHECKED, 0L);
+				}
+				else {
+					mkchartset[chartID].chart_status |= MK_CHART_NO_MARK;
+					SendMessage(mkchartset[chartID].hwnd_chart_opt2_radio, BM_SETCHECK, BST_UNCHECKED, 0L);
+				}
+				break;
+			}
+			}
+			}
 					   return 0;
 		}
 		return DefWindowProc(hwnd, msg, wp, lp);
@@ -406,12 +576,13 @@ namespace MKChart {
 	}
 	//########################################################################
 	int CMKChart::init_chart(int chartID) {
-
+/*
 		int nFramX = GetSystemMetrics(SM_CXSIZEFRAME);		//ウィンドウ周囲の幅
 		int nFramY = GetSystemMetrics(SM_CYSIZEFRAME);		//ウィンドウ周囲の高さ
 		int nCaption = GetSystemMetrics(SM_CYCAPTION);		//タイトルバーの高さ
 		int scrw = GetSystemMetrics(SM_CXSCREEN);			//プライマモニタの幅
 		int scrh = GetSystemMetrics(SM_CYSCREEN);			//プライマモニタの高さ
+*/
 
 		//表示フォント
 		mkchartset[chartID].hfont_inftext = CreateFont(
@@ -442,13 +613,28 @@ namespace MKChart {
 		mkchartset[chartID].hbrush[3] = CreateSolidBrush(RGB(255, 255, 0));
 
 
-		//SAMPLE Radio button 表示
-		if (mkchartset[chartID].chart_type == CHART_GRAPH) SendMessage(mkchartset[chartID].hwnd_chart_opt1_radio, BM_SETCHECK, BST_CHECKED, 0L);
-		if (mkchartset[chartID].chart_type == CHART_SCATTER)  SendMessage(mkchartset[chartID].hwnd_chart_opt2_radio, BM_SETCHECK, BST_CHECKED, 0L);
+		//Chart MARK LINE表示フラグセット
+		if (mkchartset[chartID].chart_type == CHART_GRAPH) mkchartset[chartID].chart_status = MK_CHART_STATUS_DEF_BASIC;
+		if (mkchartset[chartID].chart_type == CHART_SCATTER) mkchartset[chartID].chart_status = MK_CHART_STATUS_DEF_SCATTER;
+		//Radio button 表示
+		if (mkchartset[chartID].chart_status & MK_CHART_NO_LINE)
+			SendMessage(mkchartset[chartID].hwnd_chart_opt1_radio, BM_SETCHECK, BST_UNCHECKED, 0L);
+		else
+			SendMessage(mkchartset[chartID].hwnd_chart_opt1_radio, BM_SETCHECK, BST_CHECKED, 0L);
 
-		if (mkchartset[chartID].chart_type == CHART_SCATTER) {
-			//SAMPLE Radio button 表示
+		if (mkchartset[chartID].chart_status & MK_CHART_NO_MARK)
+			SendMessage(mkchartset[chartID].hwnd_chart_opt2_radio, BM_SETCHECK, BST_UNCHECKED, 0L);
+		else
 			SendMessage(mkchartset[chartID].hwnd_chart_opt2_radio, BM_SETCHECK, BST_CHECKED, 0L);
+
+		if (mkchartset[chartID].chart_status & MK_CHART_ACTIVE) {
+			SetWindowText(mkchartset[chartID].hwnd_chart_startPB, L"Stop");
+		}
+		else {
+			SetWindowText(mkchartset[chartID].hwnd_chart_startPB, L"Start");
+		}
+			   		 	  
+		if (mkchartset[chartID].chart_type == CHART_SCATTER) {
 			//CHART原点
 			mkchartset[chartID].g_origin[0].x = PHASE_MARGIN_X + SCAT_CHART_DOT_W / 2;
 			mkchartset[chartID].g_origin[0].y = SCAT_CHART_DOT_H / 2;
@@ -459,8 +645,9 @@ namespace MKChart {
 			mkchartset[chartID].g_origin[3].x = PHASE_MARGIN_X + PHASE_MARGIN_X + SCAT_CHART_DOT_W + SCAT_CHART_DOT_W / 2;
 			mkchartset[chartID].g_origin[3].y = PHASE_MARGIN_Y + SCAT_CHART_DOT_H + SCAT_CHART_DOT_H / 2;
 			//描画表示時間
-			mkchartset[chartID].refresh_interval_ms = PHASE_DURATION_DEF;
-			mkchartset[chartID].g_ms_per_dot = 0;//散布図は未使用
+			if(mkchartset[chartID].plot_interval_ms>0)
+				mkchartset[chartID].refresh_interval = MK_CHART_REFRESH_MS / mkchartset[chartID].plot_interval_ms;
+			else mkchartset[chartID].refresh_interval = MK_CHART_REFRESH_MS;
 
 			mkchartset[chartID].graph_field_w = CHART_WND_W;
 			mkchartset[chartID].graph_field_h = CHART_WND_H;
@@ -476,7 +663,6 @@ namespace MKChart {
 			}
 		}
 		else {
-			SendMessage(mkchartset[chartID].hwnd_chart_opt1_radio, BM_SETCHECK, BST_CHECKED, 0L);
 			for (int i = 0; i < MK_CHART_MAX_PER_WND; i++) {
 				mkchartset[chartID].g_origin[i].x = CHART_MARGIN_X;
 				mkchartset[chartID].g_origin[i].y = GRAPH_CHART_DOT_H / 2 + GRAPH_CHART_DOT_H * i + 25;
@@ -488,7 +674,9 @@ namespace MKChart {
 					}
 				}
 			}
-			mkchartset[chartID].refresh_interval_ms = CHART_SPEED_DEF;//時間グラフは未使用
+			if (mkchartset[chartID].plot_interval_ms > 0)
+				mkchartset[chartID].refresh_interval = MK_CHART_REFRESH_MS / mkchartset[chartID].plot_interval_ms;
+			else mkchartset[chartID].refresh_interval = MK_CHART_REFRESH_MS;
 
 			mkchartset[chartID].g_ms_per_dot = CHART_SPEED_DEF / GRAPH_CHART_DOT_W;
 
@@ -502,6 +690,7 @@ namespace MKChart {
 
 		}
 
+		memset(mkchartset[chartID].plot_data, 0, sizeof(mkchartset[chartID].plot_data));
 		mkchartset[chartID].plot_buf_index = 0;		//チャートデータバッファのindex
 		mkchartset[chartID].plot_x = 0;				//データプロットBITMAP上のX位置
 		mkchartset[chartID].start_time_ms = GetTickCount();
@@ -537,6 +726,7 @@ namespace MKChart {
 		DeleteDC(mkchartset[chartID].hdc_mem_bg);		//背景画面
 		DeleteDC(mkchartset[chartID].hdc_mem_graph);	//プロット画面
 		DestroyWindow(mkchartset[chartID].hwnd_chart);  //ウィンドウ破棄
+		mkchartset[chartID].hwnd_chart = NULL;
 		return 0;
 	}
 	//########################################################################
@@ -611,8 +801,12 @@ namespace MKChart {
 	};
 	//########################################################################
 	int  CMKChart::chart_start(int chartID, HWND hwnd_parent) {
-		if (mkchartset[chartID].chart_status < MK_CHART_STANDBY) {//初期化未完
-			if (open_chart(chartID, hwnd_parent) != NULL) init_chart(chartID);
+		if (mkchartset[chartID].hwnd_chart == NULL) {//初期化未完
+			//if (open_chart(chartID, hwnd_parent) != NULL) init_chart(chartID);
+			open_chart(chartID, hwnd_parent);
+		}
+		else {
+			init_chart(chartID);
 		}
 		return 0;
 	};

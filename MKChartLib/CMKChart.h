@@ -4,11 +4,53 @@
 
 namespace MKChart
 {
-#include "CMKChart_ini.h"
+//#include "CMKChart_ini.h"
 #include <Windows.h>
 //#include <windowsx.h>
 #include <commctrl.h>
 #include <time.h>
+
+#define NAME_OF_INIFILE		L"mkchart"	//iniファイル名
+#define EXT_OF_INIFILE		L"ini"		//iniファイル拡張子
+
+#define SET1_SECT_OF_INIFILE					L"SET1"			//CHART1 機能パラメータセクション
+#define SET2_SECT_OF_INIFILE					L"SET2"			//CHART2 機能パラメータセクション
+#define SET3_SECT_OF_INIFILE					L"SET3"			//CHART3 機能パラメータセクション
+#define SET4_SECT_OF_INIFILE					L"SET4"			//CHART4 機能パラメータセクション
+
+#define SET_CHART_TYPE_KEY_OF_INIFILE			L"CHART_TYPE"
+#define SET_CHART_X_KEY_OF_INIFILE				L"CHART_WND_X"
+#define SET_CHART_Y_KEY_OF_INIFILE				L"CHART_WND_Y"
+#define SET_CHART_W_KEY_OF_INIFILE				L"CHART_WND_W"
+#define SET_CHART_H_KEY_OF_INIFILE				L"CHART_WND_H"
+#define SET_CHART_PLOT_MS_KEY_OF_INIFILE		L"PLOT_MS"
+
+#define CHART_WND_X		600
+#define CHART_WND_Y		100
+#define CHART_WND_W		800
+#define CHART_WND_H		650
+
+#define CHART_GRAPH		0
+#define CHART_SCATTER	1
+
+#define GRAPH_CHART_100				50	//100%ドット数
+#define GRAPH_CHART_DOT_H			140	//１つのチャートの高さ
+#define GRAPH_CHART_DOT_W			720	//１つのチャートの幅
+#define SCAT_CHART_100				100	//100%ドット数
+#define SCAT_CHART_DOT_H			300	//１つのチャートの高さ
+#define SCAT_CHART_DOT_W			300	//１つのチャートの幅
+#define CHART_MARGIN_X				50	//チャート書き出しポイント
+#define CHART_SPEED_DEF				10000	//チャート表示範囲デフォルトmsec
+#define GRAPH_CHART_BOOL_H			4	//BOOLデータON時の高さ
+
+#define PHASE_NUM			3
+#define PHASE_DURATION_DEF	10000	//位相表示時間msec
+#define PHASE_INTERVAL		100	//位相表示間隔
+#define PHASE_MARGIN_X		25	//位相チャート書き出しポイント
+#define PHASE_MARGIN_Y		10	//位相チャート書き出しポイント
+#define PHASE_MAX_DEGREE	20	//位相チャート表示最大角度
+
+
 
 #define MK_CHART_WND_MAX		4		//表示可能チャートウィンドウ数
 #define MK_CHART_MAX_PER_WND	4		//1ウィンドウ当たり表示可能チャート数
@@ -32,6 +74,8 @@ namespace MKChart
 #define MK_CHART_BUF_MAX		600
 #define MK_RANGE_100PERCENT		100000
 
+#define MK_CHART_REFRESH_MS     10000
+
 #define MK_DATA_CODE_X			0
 #define MK_DATA_CODE_Y			1
 #define MK_ADDRESS_INT			0
@@ -44,7 +88,7 @@ namespace MKChart
 
 //操作ボタンID
 #define IDC_CHART_START_PB		10601
-#define IDC_CHART_STOP_PB		10602
+#define IDC_CHART_PAUSE_PB		10602
 #define IDC_CHART_RADIO_OPT1	10603
 #define IDC_CHART_RADIO_OPT2	10604
 
@@ -76,13 +120,13 @@ namespace MKChart
 		int    i100[MK_CHART_MAX_PER_WND][MK_MAX_GRAPH_PER_CHART];
 	}ST_RANGE_SET, *LPST_RANGE_SET;
 
-
-
-#define MK_CHART_DEACTIVE	0
-#define MK_CHART_STANDBY	1
-#define MK_CHART_ACTIVE		2
-#define MK_CHART_PAUSE		3
-
+#define MK_CHART_INIT				0x0001
+#define MK_CHART_ACTIVE				0x0002
+#define MK_CHART_PAUSE				0x0004
+#define MK_CHART_NO_LINE			0x0100
+#define MK_CHART_NO_MARK			0x0200
+#define MK_CHART_STATUS_DEF_BASIC	0x0203
+#define MK_CHART_STATUS_DEF_SCATTER	0x0103
 	
 	typedef struct _stCHART_SET
 	{
@@ -92,14 +136,14 @@ namespace MKChart
 		int chart_x, chart_y, chart_w, chart_h;	//チャート画面の位置　幅、高さ
 		int graph_field_w, graph_field_h;//GRAPHチャートのビットマップサイズ
 		int plot_interval_ms;					//表示間隔msec
-		int refresh_interval_ms;				//グラフ表示クリア間隔msec
+		int refresh_interval;				//グラフ表示クリア間隔(プロット回数）
 		DWORD	start_time_ms;					//チャート開始時間
 		DWORD	latast_plot_time_ms;			//最後にプロットした時間
 
 	//Window
 		HWND hwnd_chart;				//チャートウィンドウのハンドル
 		HWND hwnd_chart_startPB;		//チャートスタートPBのハンドル
-		HWND hwnd_chart_sopPB;			//チャートストップPBのハンドル
+		HWND hwnd_chart_pausePB;			//チャートストップPBのハンドル
 		HWND hwnd_chart_opt1_radio;		//チャートOption1PBのハンドル
 		HWND hwnd_chart_opt2_radio;		//チャートOption2PBのハンドル
 		HBITMAP hBmap_mem0;
@@ -165,9 +209,6 @@ namespace MKChart
 		static LRESULT CALLBACK ChartWndProc_B(HWND, UINT, WPARAM, LPARAM);//Data-Data Graph
 		
 		static	int chart_start(int chartID, HWND hwnd_parent);
-		static	int chart_plot(int chartID);
-		static	int chart_stop(int chartID);
-
 		static int get_chartID(HWND hWnd) { for (int i = 0; i < MK_CHART_WND_MAX; i++) { if (hWnd == mkchartset[i].hwnd_chart) return i; } return 3; }
 		static	int set_graph(int chart_WND_ID);
 	
