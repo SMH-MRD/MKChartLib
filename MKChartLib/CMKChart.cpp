@@ -18,8 +18,6 @@ namespace MKChart {
 	static int dummy_i = 0;
 	static bool dummy_b = false;
 
-
-
 	//########################################################################
 	int CMKChart::init_chartfunc() {
 
@@ -645,8 +643,10 @@ namespace MKChart {
 			mkchartset[chartID].g_origin[3].x = PHASE_MARGIN_X + PHASE_MARGIN_X + SCAT_CHART_DOT_W + SCAT_CHART_DOT_W / 2;
 			mkchartset[chartID].g_origin[3].y = PHASE_MARGIN_Y + SCAT_CHART_DOT_H + SCAT_CHART_DOT_H / 2;
 			//描画表示時間
-			if(mkchartset[chartID].plot_interval_ms>0)
-				mkchartset[chartID].refresh_interval = MK_CHART_REFRESH_MS / mkchartset[chartID].plot_interval_ms;
+			if(mkchartset[chartID].plot_interval_ms>0){
+				if(mkchartset[chartID].refresh_interval < 1000 / mkchartset[chartID].plot_interval_ms)
+					mkchartset[chartID].refresh_interval = MK_CHART_REFRESH_MS / mkchartset[chartID].plot_interval_ms;
+			}
 			else mkchartset[chartID].refresh_interval = MK_CHART_REFRESH_MS;
 
 			mkchartset[chartID].graph_field_w = CHART_WND_W;
@@ -674,8 +674,11 @@ namespace MKChart {
 					}
 				}
 			}
-			if (mkchartset[chartID].plot_interval_ms > 0)
-				mkchartset[chartID].refresh_interval = MK_CHART_REFRESH_MS / mkchartset[chartID].plot_interval_ms;
+			//描画表示時間
+			if (mkchartset[chartID].plot_interval_ms > 0) {
+				if (mkchartset[chartID].refresh_interval < 1000 / mkchartset[chartID].plot_interval_ms)
+					mkchartset[chartID].refresh_interval = MK_CHART_REFRESH_MS / mkchartset[chartID].plot_interval_ms;
+			}
 			else mkchartset[chartID].refresh_interval = MK_CHART_REFRESH_MS;
 
 			mkchartset[chartID].g_ms_per_dot = CHART_SPEED_DEF / GRAPH_CHART_DOT_W;
@@ -694,7 +697,7 @@ namespace MKChart {
 		mkchartset[chartID].plot_buf_index = 0;		//チャートデータバッファのindex
 		mkchartset[chartID].plot_x = 0;				//データプロットBITMAP上のX位置
 		mkchartset[chartID].start_time_ms = GetTickCount();
-		set_chart_spd(chartID, CHART_SPEED_DEF);
+		if(mkchartset[chartID].spd_dot_per_sec < 1)	set_chart_spd(chartID, CHART_SPEED_DEF);
 
 		for (int i = 0; i < MK_CHART_MAX_PER_WND; i++) mkchartset[chartID].graph_count[i] = 0;
 
@@ -864,4 +867,11 @@ namespace MKChart {
 		else 	mkchartset[chart_WND_ID].spd_dot_per_sec = GRAPH_CHART_DOT_W / temp_s;
 		return 0;
 	}
+	//########################################################################
+	int CMKChart::set_reflesh_time(int chartID, int period_ms) {
+		if (period_ms > 0)
+			mkchartset[chartID].refresh_interval = period_ms / mkchartset[chartID].plot_interval_ms;
+		return 0;
+	};
+
 }

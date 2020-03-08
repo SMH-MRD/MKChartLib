@@ -203,6 +203,7 @@ namespace MKChart
 		static	int set_int_data(int* pi, int chart_WND_ID, int i_chart, int i_item, int i_100, bool is_x);
 		static	int set_bool_data(bool* pb, int chart_WND_ID, int i_chart, int i_item, int i_bool);
 		static	int set_chart_spd(int chart_WND_ID, int speed_ms);//チャートのスピード　チャート幅記録にかかる時間msec
+		static	int set_reflesh_time(int chart_WND_ID, int period_ms);
 
 		static HWND open_chart(int chartID, HWND hwnd_parent);
 		static LRESULT CALLBACK ChartWndProc_A(HWND, UINT, WPARAM, LPARAM);//Time-Data Graph
@@ -211,6 +212,5 @@ namespace MKChart
 		static	int chart_start(int chartID, HWND hwnd_parent);
 		static int get_chartID(HWND hWnd) { for (int i = 0; i < MK_CHART_WND_MAX; i++) { if (hWnd == mkchartset[i].hwnd_chart) return i; } return 3; }
 		static	int set_graph(int chart_WND_ID);
-	
 	};
 }
