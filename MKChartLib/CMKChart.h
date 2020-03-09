@@ -212,5 +212,6 @@ namespace MKChart
 		static	int chart_start(int chartID, HWND hwnd_parent);
 		static int get_chartID(HWND hWnd) { for (int i = 0; i < MK_CHART_WND_MAX; i++) { if (hWnd == mkchartset[i].hwnd_chart) return i; } return 3; }
 		static	int set_graph(int chart_WND_ID);
+		static void draw_bg(int chartID);
 	};
 }
